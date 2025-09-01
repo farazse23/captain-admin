@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/FirebaseAuthContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
+import logo from '../assets/logo.png';
 
 const LoginPage = () => {
   const { login, currentUser, loading, forgotPassword } = useAuth();
@@ -91,7 +92,7 @@ const LoginPage = () => {
           {/* Header */}
           <div className="text-center mb-8">
             <img
-              src="./src/assets/logo.png" // Adjust the path as necessary
+              src={logo}
               alt="Captain Truck"
               className="mx-auto h-20 w-20 rounded-xl mb-4 bg-blue-500"
             />

@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { ROUTES } from '../../utils/constants';
 import { subscribeToPendingRequests, subscribeToNotifications } from '../../services/data';
+import logo from '../../assets/logo.png';
 
 const Sidebar = ({ isOpen, onClose }) => {
   const location = useLocation();
@@ -125,7 +126,7 @@ const Sidebar = ({ isOpen, onClose }) => {
           {/* Logo Section */}
           <div className="flex items-center justify-center h-16 px-4 bg-slate-900">
             <img
-              src="./src/assets/logo.png" // Adjust the path as necessary
+              src={logo}
               alt="Captain Truck"
               className="h-10 w-10 rounded-lg"
             />
