@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Admin Login</title>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js"></script>
+</head>
+<body>
+    <h1>Admin Login Test</h1>
+    <div>
+        <input type="email" id="email" placeholder="Enter admin email" style="width: 300px; padding: 10px; margin: 5px;">
+        <br>
+        <input type="password" id="password" placeholder="Enter password" style="width: 300px; padding: 10px; margin: 5px;">
+        <br>
+        <button onclick="testLogin()" style="padding: 10px 20px; margin: 10px;">Test Login</button>
+        <button onclick="checkAdminCollection()" style="padding: 10px 20px; margin: 10px;">Check Admin Collection</button>
+    </div>
+    <div id="results" style="margin-top: 20px; padding: 20px; border: 1px solid #ccc; background: #f9f9f9;">
+        Results will appear here...
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js';
+        import { getAuth, signInWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js';
+        import { getFirestore, collection, getDocs, query, where } from 'https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js';
+
+        // Your Firebase config
+        const firebaseConfig = {
+            apiKey: "AIzaSyAS_5loXIQIafIJlR-_LWjJWuOR5SfVX9A",
+            authDomain: "captain-truck-242e5.firebaseapp.com",
+            projectId: "captain-truck-242e5",
+            storageBucket: "captain-truck-242e5.firebasestorage.app",
+            messagingSenderId: "412580495489",
+            appId: "1:412580495489:web:c81d1d4ceeba46e059cd80",
+            measurementId: "G-NQQ1WHY79F"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        window.testLogin = async function() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const resultsDiv = document.getElementById('results');
+
+            if (!email || !password) {
+                resultsDiv.innerHTML = '<p style="color: red;">Please enter both email and password</p>';
+                return;
+            }
+
+            try {
+                resultsDiv.innerHTML = '<p>Testing login...</p>';
+                
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+                
+                resultsDiv.innerHTML = `
+                    <h3 style="color: green;">✅ Firebase Auth Success</h3>
+                    <p><strong>Email:</strong> ${user.email}</p>
+                    <p><strong>UID:</strong> ${user.uid}</p>
+                    <p><strong>Email Verified:</strong> ${user.emailVerified}</p>
+                    <hr>
+                    <p>Now checking admin collection...</p>
+                `;
+
+                // Check admin collection
+                const adminsQuery = query(collection(db, 'admins'), where('adminId', '==', user.uid));
+                const adminsSnapshot = await getDocs(adminsQuery);
+
+                if (!adminsSnapshot.empty) {
+                    const adminDoc = adminsSnapshot.docs[0];
+                    const adminData = adminDoc.data();
+                    
+                    resultsDiv.innerHTML += `
+                        <h3 style="color: green;">✅ Admin Record Found</h3>
+                        <p><strong>Name:</strong> ${adminData.name}</p>
+                        <p><strong>Status:</strong> ${adminData.status}</p>
+                        <p><strong>Role:</strong> ${adminData.role}</p>
+                        <p><strong>Created At:</strong> ${adminData.createAt?.toDate ? adminData.createAt.toDate().toLocaleString() : 'N/A'}</p>
+                        <h3 style="color: green;">🎉 LOGIN SHOULD WORK!</h3>
+                    `;
+                } else {
+                    resultsDiv.innerHTML += `
+                        <h3 style="color: red;">❌ Admin Record NOT Found</h3>
+                        <p>The user exists in Firebase Auth but not in the 'admins' collection.</p>
+                        <p>This is why login fails - the app can't find the admin profile.</p>
+                    `;
+                }
+
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <h3 style="color: red;">❌ Login Failed</h3>
+                    <p><strong>Error:</strong> ${error.message}</p>
+                    <p><strong>Code:</strong> ${error.code}</p>
+                `;
+            }
+        }
+
+        window.checkAdminCollection = async function() {
+            const resultsDiv = document.getElementById('results');
+            
+            try {
+                resultsDiv.innerHTML = '<p>Checking admin collection...</p>';
+                
+                const adminsSnapshot = await getDocs(collection(db, 'admins'));
+                
+                if (adminsSnapshot.empty) {
+                    resultsDiv.innerHTML = '<h3 style="color: red;">❌ No admins found in collection</h3>';
+                } else {
+                    let html = '<h3 style="color: green;">✅ Admins found:</h3>';
+                    
+                    adminsSnapshot.docs.forEach(doc => {
+                        const data = doc.data();
+                        html += `
+                            <div style="border: 1px solid #ccc; padding: 10px; margin: 10px 0;">
+                                <p><strong>Document ID:</strong> ${doc.id}</p>
+                                <p><strong>Email:</strong> ${data.email}</p>
+                                <p><strong>Name:</strong> ${data.name}</p>
+                                <p><strong>Admin ID (UID):</strong> ${data.adminId}</p>
+                                <p><strong>Status:</strong> ${data.status}</p>
+                                <p><strong>Role:</strong> ${data.role}</p>
+                            </div>
+                        `;
+                    });
+                    
+                    resultsDiv.innerHTML = html;
+                }
+                
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <h3 style="color: red;">❌ Error checking collection</h3>
+                    <p>${error.message}</p>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>
