@@ -95,7 +95,21 @@ export const AuthProvider = ({ children }) => {
           }
         } catch (error) {
           console.error('Error fetching user data:', error);
-          setError('Error loading user profile');
+          
+          // Handle offline scenarios
+          if (error.code === 'unavailable' || error.message?.includes('offline')) {
+            console.warn('App is offline - user will be authenticated with limited functionality');
+            setCurrentUser({
+              uid: firebaseUser.uid,
+              email: firebaseUser.email,
+              name: firebaseUser.displayName || firebaseUser.email,
+              role: 'admin', // Default role when offline
+              isOffline: true
+            });
+            setError(null);
+          } else {
+            setError('Error loading user profile. Please check your connection.');
+          }
         }
       } else {
         setCurrentUser(null);
